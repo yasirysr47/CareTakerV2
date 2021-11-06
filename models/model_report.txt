@@ -1,0 +1,56 @@
+Training RandomForestRegressor(n_estimators=200, random_state=1) started....
+Model test accuracy: 84.630%
+Total time taken for training: 22.47324776649475 s
+=========
+
+
+Training XGBRegressor(base_score=None, booster=None, colsample_bylevel=None,
+             colsample_bynode=None, colsample_bytree=None,
+             enable_categorical=False, gamma=None, gpu_id=None,
+             importance_type=None, interaction_constraints=None,
+             learning_rate=0.1, max_delta_step=None, max_depth=None,
+             min_child_weight=None, missing=nan, monotone_constraints=None,
+             n_estimators=250, n_jobs=8, num_parallel_tree=None, predictor=None,
+             random_state=None, reg_alpha=None, reg_lambda=None,
+             scale_pos_weight=None, subsample=None, tree_method=None,
+             validate_parameters=None, verbosity=None) started....
+Model test accuracy: 80.121%
+Total time taken for training: 12.56879997253418 s
+=========
+
+
+Training GaussianNB() started....
+Model test accuracy: 99.760%
+Total time taken for training: 14.528609037399292 s
+=========
+
+
+Training KNeighborsClassifier(n_neighbors=300) started....
+Model test accuracy: 0.120%
+Total time taken for training: 0.19358301162719727 s
+=========
+
+
+Training SVC() started....
+Model test accuracy: 0.360%
+Total time taken for training: 6.617563009262085 s
+=========
+
+
+Training SVC(C=1, kernel='linear') started....
+Model test accuracy: 0.360%
+Total time taken for training: 5.696974754333496 s
+=========
+
+
+Training SVC(kernel='poly') started....
+Model test accuracy: 0.120%
+Total time taken for training: 5.780649900436401 s
+=========
+
+
+Training RandomForestRegressor(max_features=5, n_estimators=200, random_state=1) started....
+Model test accuracy: 85.236%
+Total time taken for training: 1.194155216217041 s
+=========
+
