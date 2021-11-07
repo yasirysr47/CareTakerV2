@@ -1,23 +1,22 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import os
-import sys
 import copy
 import json
 import csv
-
-
 from os import listdir
 from os.path import isfile, join
 from collections import OrderedDict
 from nltk.stem.snowball import SnowballStemmer
 from utils import load_nlp, pickle_object
-from config import (disease_data_path, token_data_file, sent_data_file, symptom_counter_file,
-disease_to_symptom_file, symptom_to_disease_file)
-
-
+from config import (disease_data_path, token_data_file, sent_data_file,
+                    symptom_counter_file, disease_to_symptom_file, symptom_to_disease_file)
 
 
 class GenerateTrainingData():
+    """Generates two CSV training data files along with two hash maps by using the processed raw data from DataStore."""
     def __init__(self):
+        """Initialize all the generic objects."""
         self.nlp = load_nlp()
         self.stemmer = SnowballStemmer(language='english')
         self.word_count = {}
@@ -25,24 +24,33 @@ class GenerateTrainingData():
         self.symptom_to_disease_map = dict()
         self.disease_to_symptom_map = dict()
 
-    def save_feature_as_tokens(self, data_set):
-        '''
-        data_set = (title, (lot of tokens))
-        excel file format :
+    def save_feature_as_tokens(self, data_map: dict):
+        """Store the generated training features as tokens (list of features) in a csv file.
+
+        Args:
+            data_map (dict): hash map of title to list of symptoms (key: value) pairs
+
+        Return:
+            write the data into a CSV file.
+
+        CSV file format :
         col 1 = disease 
-        col 2...inf = each token
-        col1 value = disease name
-        other col value is binary 0|1
-        each row is for each set of tokens
-        '''
+        col 2...inf = each token (token = symptom root word)
+        col 1 values are disease names
+        other col values are binary 0|1
+        each row is for one disease
+        """
         csv_file = open(token_data_file, "w+")
         csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         token_obj = copy.copy(self.token_dict)
         symptom_list = token_obj.keys()
+        # First column of csv is disease name.
         header = ['disease']
+        # Adding all symptoms as columns.
         header.extend(symptom_list)
         csv_writer.writerow(header)
-        for title, tokens in data_set.items():
+        # Write all disease title and its corrresponding binary symptoms list in each rows.
+        for title, tokens in data_map.items():
             if len(tokens) < 2:
                 continue
             token_obj = copy.copy(self.token_dict)
@@ -53,35 +61,52 @@ class GenerateTrainingData():
             row.extend(token_obj.values())
             csv_writer.writerow(row)
 
-    def save_feature_as_sents(self,data_list):
-        '''
-        data_set = (title, sentence)
-        excel file format :
+    def save_feature_as_sents(self, data_map: dict):
+        """Store the generated training features as a line of string (string of symptoms) in a csv file.
+
+        Args:
+            data_map (dict): hash map of title to string of symptoms (key: value) pairs
+
+        Return:
+            write the data into a CSV file.
+
+        CSV file format :
         col 1 = disease 
         col 2 = symptoms
         col1 value = disease name 
-        col2 value = one sentence of one disease
+        col2 value = one sentence of symptoms for one disease
         each row is for one disease
-        '''
+        """
         csv_file = open(sent_data_file, "w+")
         csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        # Only two defined columns are there, disease and symptom.
         csv_writer.writerow(['disease', 'symptom'])
-        for title, words in data_list.items():
+        # Write all disease title and its corresponding symptom string sentence in each rows.
+        for title, words in data_map.items():
             if len(words) < 2:
                 continue
             sent = ' '.join(sorted(list(words)))
             csv_writer.writerow([title, sent])
         
-    def tokenize_sent(self, title, sent):
+    def tokenize_sent(self, title: str, sent: str):
+        """Tokenize the string of symptoms into its root form.
+
+        Args:
+            title (string): name of disease
+            sent (string): a string sentence of all its symptoms
+        """
         token_set = set()
         doc = self.nlp(sent)
         for word in doc:
+            # Ignore all the punctuations, stop words, non-alphabetic characters, white spaces and words with 2 or less characters.
             if (not word.is_punct and not word.is_stop
             and not word.is_space and word.is_alpha
             and len(word) > 2):
+                # Get the stem/root word.
                 stem_word = self.stemmer.stem(word.text)
                 token_set.add(stem_word)
-
+                # TODO: To ignore stem_word that are not valid symptoms or is a generic word.
+                # Generate a symptom to disease hash map. And keep track of the count of symptoms.
                 if stem_word in self.word_count:
                     self.word_count[stem_word] += 1
                     self.symptom_to_disease_map[stem_word].add(title)
@@ -89,32 +114,27 @@ class GenerateTrainingData():
                     self.token_dict[stem_word] = 0
                     self.word_count[stem_word] = 1
                     self.symptom_to_disease_map[stem_word] = {title}
-            
-                '''
-                token_set.add(word.lemma_)
-                if word.lemma_ in self.word_count:
-                    self.word_count[word.lemma_] += 1
-                else:
-                    self.token_dict[word.lemma_] = 0
-                    self.word_count[word.lemma_] = 1
-                '''
+        # Generate a disease to symptom hash map.
         if not self.disease_to_symptom_map.get(title):
             self.disease_to_symptom_map[title] = token_set
         else:
             self.disease_to_symptom_map[title].update(token_set)
 
-    def get_all_token(self):
+    def dump_all_token(self):
+        """Dump all symptom counts to a JSON file."""
+        # Sort the symptom count dict from most highest occuring symptom to least occuring one.
         self.word_count = {k:v for k, v in sorted(self.word_count.items(), key=lambda itm: itm[1], reverse=True)}
         with open(symptom_counter_file, "w+") as fp:
             json.dump(self.word_count, fp, indent=4)
 
     def generate_data_and_features(self):
+        """Generate the training CSV files and hash maps from all the disease files available at DataStore."""
         syptom_sent_set = set()
         flag = 0
         title_flag = 0
         limit = 0
         title = ''
-
+        # Get all disease detail filenames from DataStore.
         files = [f for f in listdir(disease_data_path) if isfile(join(disease_data_path, f))]
         for fil in files:
             title = ''
@@ -122,6 +142,7 @@ class GenerateTrainingData():
             if limit == 2000:
                 break
             limit += 1
+            # Open each disease file name for processing.
             fp = open(os.path.join(disease_data_path, fil), "r")
             line_no = 0
             for each_line in fp.readlines():
@@ -129,14 +150,14 @@ class GenerateTrainingData():
                 if not title_flag and not title and not line_no:
                     title = each_line
                     title_flag = 1
-                    #TODO: to fix data title issue
-                    # if title.startswith(('y', 'eart')) and not title.startswith('yeast'):
-                    #     title = "h{}".format(title)
-                    
+                    #TODO: To ignore titles that are not valid disease names.
+
+                # Starting of the symptoms section in the file.
                 if not flag and each_line == 'symptoms':
                     flag = 1
                 elif not flag:
                     continue
+                # Each symptom in the file starts with the arrow sign.
                 if flag and each_line.startswith('->'):
                     sent = each_line.strip('->')
                     syptom_sent_set.add(sent)
@@ -146,11 +167,11 @@ class GenerateTrainingData():
                     break
                 line_no += 1
 
-
+        # Save the disease and synptom data into CSV files.
         self.save_feature_as_sents(self.disease_to_symptom_map)
         self.save_feature_as_tokens(self.disease_to_symptom_map)
-        self.get_all_token()
-        # import pdb; pdb.set_trace()
+        self.dump_all_token()
+        # Save disease to symptom and symptom to disease hash maps into a pickle file.
         pickle_object(self.disease_to_symptom_map, disease_to_symptom_file)
         pickle_object(self.symptom_to_disease_map, symptom_to_disease_file)
 

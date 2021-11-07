@@ -1,129 +1,86 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import time
-import numpy as np
 import pandas as pd
-
 from sklearn.svm import SVC
-from xgboost import XGBRegressor
-from sklearn.neighbors import KNeighborsClassifier 
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.naive_bayes import GaussianNB
-
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.naive_bayes import CategoricalNB
+from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-from utils import pickle_object, clean_str, load_nlp
-from config import (token_data_file, sent_data_file, naive_bayes_model, random_forest_model,
-                    model_encoder, feature_list, model_report_file)
+from utils import pickle_object, load_nlp
+from config import (token_data_file, svm_model, feature_list, categorical_nb_model)
 
 
 class GenerateModel():
+    """Generate ML models to use for disease predictions.
+    """
     def __init__(self):
+        """Loads training data files and spacy object with english langugae model.
+        """
         self.nlp = load_nlp()
-        self.vec_file = pd.read_csv(sent_data_file)
-        self.rf_file = pd.read_csv(token_data_file)
+        self.tokenized_input_file = pd.read_csv(token_data_file)
 
-    def clean_str(self, st, typ = "sent"):
-        doc = self.nlp(st)
-        token_set = set()
-        for word in doc:
-            if (not word.is_punct and not word.is_stop
-            and not word.is_space and word.is_alpha):
-                token_set.add(word.lemma_)
+    def save_object(self, object, filename: str):
+        """Save a python object to a binary file for later use.
 
-        if typ == "token":
-            return sorted(list(token_set))
-        sent = ' '.join(sorted(list(token_set)))
-        return sent
-
-    def save_object(self, object, filename):
+        Args:
+            object (python object): any type of python object.
+            filename (str): filename to save the python object.
+        """
         pickle_object(object, filename)
 
-    def save_model_report(self, info):
-        with open(model_report_file, "w+") as fp:
-            fp.write("\n".join(info))        
-
-    def get_best_model(self):
-        Y = self.rf_file.disease
-        model_report = []
-        #word_map_key, word_map_val, Y = self.symptom_map(Y)
-        features = self.rf_file.columns.drop('disease')
-        pickle_object(features, feature_list)
-        X = self.rf_file[features]
-        orig_X_train, orig_X_test, orig_y_train, orig_y_test = train_test_split(X, Y, test_size=0.000001, random_state=1)
-        xx_train, orig_Z_test, yy_train, orig_z_test = train_test_split(X, Y, test_size=0.99, random_state=1)
-        # import pdb; pdb.set_trace()
-        
-        scaler = StandardScaler()
-        scaler.fit(orig_X_train)
-
-        orig_X_train = scaler.transform(orig_X_train)
-        orig_X_test = scaler.transform(orig_X_test)
-
-        
-        model1 = RandomForestRegressor(n_estimators=200, random_state=1)
-        model2 = XGBRegressor(n_estimators=250, learning_rate=0.1, n_jobs=8)
-        model3 = GaussianNB()
-        model8 = RandomForestRegressor(n_estimators=200, max_features=5, random_state=1)
-
-        model4 = KNeighborsClassifier(n_neighbors=300)
-        model5 = SVC(kernel='rbf')
-        model6 = SVC(kernel='linear', C=1, gamma='scale')
-        model7 = SVC(kernel='poly')
-        best_model = None
-        best_model_score = 0
-        models = [model1, model2, model3, model4, model5, model6, model7, model8]
-        # models = [model3, model8]
-        # mx = X[:5]
-        # print(mx)
-        # origy = Y[:5]
-        # my = origy
+    def train_and_save_model(self):
+        """Train the ML model and store it in a binary file.
+        """
         label_encoder = LabelEncoder()
+        # Y is the target values w.r.t training data.
+        Y = self.tokenized_input_file.disease
+        # features are all columns except the target column (disease).
+        features = self.tokenized_input_file.columns.drop('disease')
+        self.save_object(features, feature_list)
+        # X is the training data.
+        X = self.tokenized_input_file[features]
+        # Get some or all cases for testing purposes.
+        _, default_X_test, _, default_y_test = train_test_split(X, Y, test_size=0.99, random_state=5)
+        
+        # encoding string into integers.
+        encoded_Y = label_encoder.fit_transform(Y)
+        _, encoded_X_test, _, encoded_y_test = train_test_split(X, encoded_Y, test_size=0.99, random_state=5)
+
+        # SVM model.
+        SVM_model = SVC()
+        # Naive Bayes model
+        CNB_model = CategoricalNB()
+
+        models = [SVM_model, CNB_model]
+        # start trainng the models
         for i, model in enumerate(models):
             start_time = time.time()
             i += 1
             print("Training {} started....".format(model))
-            model_report.append("Training {} started....".format(model))
-            if model in [model1, model2, model3, model4, model8]:
-                Y1 = label_encoder.fit_transform(Y)
-                X_train, X_test, y_train, y_test = train_test_split(X, Y1, test_size=0.000001, random_state=1)
-                X1_train, Z_test, y1_train, z_test = train_test_split(X, Y1, test_size=0.99, random_state=1)
-                # my = Y1[:5]
+            X_train = X
+            if model == SVM_model:
+                # use label encoded values for svm
+                y_train = encoded_Y
+                X_test = encoded_X_test
+                y_test = encoded_y_test
             else:
-                X_train = orig_X_train
-                y_train = orig_y_train
-                Z_test = orig_Z_test
-                z_test = orig_z_test
-                # my = origy
-            
-            if model == model2:
-                model.fit(X_train, y_train, 
-                early_stopping_rounds=25, 
-                eval_set=[(Z_test, z_test)],
-                verbose=False)
-            else:
-                model.fit(X_train, y_train)
+                y_train = Y
+                X_test = default_X_test
+                y_test = default_y_test
+            # actual training starts here.
+            model.fit(X_train,y_train)
             
             print("Training completed !!!!")
-            score = model.score(Z_test, z_test)*100
-            if score > best_model_score:
-                best_model_score = score
-                best_model = model
+            # evaluate the model accuracy.
+            score = model.score(X_test, y_test)*100
             print("Model test accuracy: {:.3f} %".format(score))
             end_time = time.time()
             print("Total time taken for training: {} s".format(end_time-start_time))
-            model_report.append(f'Model test accuracy: {model.score(Z_test, z_test)*100:.3f}%')
-            model_report.append("Total time taken for training: {} s".format(end_time-start_time))
-            model_report.append("=========\n\n")
         
-        
-        self.save_model_report(model_report)
-        self.save_object(best_model, naive_bayes_model)
-        self.save_object(model8, random_forest_model)
-        self.save_object(label_encoder, model_encoder)
-
-        
+        # Save the models into a file. (pickling)
+        self.save_object(SVM_model, svm_model)
+        self.save_object(CNB_model, categorical_nb_model)
 
 
 if __name__ == '__main__':
-    # GenerateModel().vectorization_model()
-
-    GenerateModel().get_best_model()
+    GenerateModel().train_and_save_model()

@@ -1,0 +1,29 @@
+=> Dengue fever, ebola, malaria, dengue, covid, etc: <=
+
+
+severe joint and muscle pain, vomiting, eye pain
+fatigue, vomiting, eye pain, severe joint and muscle pain # dengue
+fever, vomiting, headache, cough, muscle pain, chest pain, fatigue, nausea, abdominal pain # malaria
+fatigue, headache, nausea, severe joint and muscle pain # dengue
+
+
+=> Common Fever or flu: <=
+
+Headache, sweating, weak muscles, dehydration, shivering, chill
+
+
+=> Concussion: <=
+
+blurry vision, confusions, dizziness, drowsiness
+Blurry vision, confusions, dizziness, drowsiness, forget things, ringing sound in ear
+
+
+=> Some kind of allergies: <=
+
+sneezing, skin and eye itching
+Sneezing, swollen throat, skin and eye itching
+
+
+=> Chickenpox: <=
+
+fever, loss of strength, red fluid bumb
