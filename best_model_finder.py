@@ -8,7 +8,7 @@ from sklearn.naive_bayes import GaussianNB, CategoricalNB, BernoulliNB
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from utils import pickle_object, load_nlp
-from config import (token_data_file, sent_data_file, feature_list, model_report_file,
+from config import (token_data_file, sent_data_file, feature_list, model_report_file, model_encoder,
                     categorical_nb_model, svm_model, linear_svm_model, svr_model, linear_svr_model,
                     gaussian_nb_model, random_forest_model, regressor_model, knn_model, bernouli_nb_model)
 
@@ -59,9 +59,8 @@ class GenerateModel():
         model9 = BernoulliNB()
         model10 = CategoricalNB()
 
-        best_model = None
-        best_model_score = 0
         models = [model1, model2, model3, model4, model5, model6, model7, model9, model10, model11]
+        # iterate through all the models to find the best suited model
         for i, model in enumerate(models):
             start_time = time.time()
             i += 1
@@ -92,9 +91,6 @@ class GenerateModel():
 
             print("Training completed !!!!")
             score = model.score(X_test, y_test)*100
-            if score >= best_model_score:
-                best_model_score = score
-                best_model = model
             print("Model test accuracy: {:.3f} %".format(score))
             end_time = time.time()
             print("Total time taken for training: {} s".format(end_time-start_time))
@@ -102,7 +98,7 @@ class GenerateModel():
             model_report.append("Total time taken for training: {} s".format(end_time-start_time))
             model_report.append("=========\n\n")
         
-        
+        # save all reports, models, and encoder to a binary file. (pickling)
         self.save_model_report(model_report)
         self.save_object(model1, random_forest_model)
         self.save_object(model2, regressor_model)

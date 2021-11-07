@@ -7,11 +7,11 @@ from sklearn.naive_bayes import CategoricalNB
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from utils import pickle_object, load_nlp
-from config import (token_data_file, svm_model, feature_list, categorical_nb_model)
+from config import (token_data_file, svm_model, feature_list, categorical_nb_model, model_encoder)
 
 
-class GenerateModel():
-    """Generate ML models to use for disease predictions.
+class TrainModel():
+    """Train ML models to use for disease predictions.
     """
     def __init__(self):
         """Loads training data files and spacy object with english langugae model.
@@ -77,10 +77,11 @@ class GenerateModel():
             end_time = time.time()
             print("Total time taken for training: {} s".format(end_time-start_time))
         
-        # Save the models into a file. (pickling)
+        # Save the models and encoder into a file. (pickling)
         self.save_object(SVM_model, svm_model)
         self.save_object(CNB_model, categorical_nb_model)
+        self.save_object(label_encoder, model_encoder)
 
 
 if __name__ == '__main__':
-    GenerateModel().train_and_save_model()
+    TrainModel().train_and_save_model()
