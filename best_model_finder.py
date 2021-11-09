@@ -8,7 +8,7 @@ from sklearn.naive_bayes import GaussianNB, CategoricalNB, BernoulliNB
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 from utils import pickle_object, load_nlp
-from config import (token_data_file, sent_data_file, feature_list, model_report_file, model_encoder,
+from config import (token_data_file, sent_data_file, tfidf_data_file, feature_list, model_report_file, model_encoder,
                     categorical_nb_model, svm_model, linear_svm_model, svr_model, linear_svr_model,
                     gaussian_nb_model, random_forest_model, regressor_model, knn_model, bernouli_nb_model)
 
@@ -17,7 +17,8 @@ class GenerateModel():
     def __init__(self):
         self.nlp = load_nlp()
         self.vec_file = pd.read_csv(sent_data_file)
-        self.rf_file = pd.read_csv(token_data_file)
+        # self.rf_file = pd.read_csv(token_data_file)
+        self.rf_file = pd.read_csv(tfidf_data_file)
 
     def save_object(self, object, filename):
         pickle_object(object, filename)
@@ -100,17 +101,17 @@ class GenerateModel():
         
         # save all reports, models, and encoder to a binary file. (pickling)
         self.save_model_report(model_report)
-        self.save_object(model1, random_forest_model)
-        self.save_object(model2, regressor_model)
-        self.save_object(model3, gaussian_nb_model)
-        self.save_object(model4, knn_model)
-        self.save_object(model5, svm_model)
-        self.save_object(model6, linear_svm_model)
-        self.save_object(model7, svr_model)
-        self.save_object(model11, linear_svr_model)
-        self.save_object(model9, bernouli_nb_model)
-        self.save_object(model10, categorical_nb_model)
-        self.save_object(label_encoder, model_encoder)
+        self.save_object(model1, random_forest_model+'demo')
+        self.save_object(model2, regressor_model+'demo')
+        self.save_object(model3, gaussian_nb_model+'demo')
+        self.save_object(model4, knn_model+'demo')
+        self.save_object(model5, svm_model+'demo')
+        self.save_object(model6, linear_svm_model+'demo')
+        self.save_object(model7, svr_model+'demo')
+        self.save_object(model11, linear_svr_model+'demo')
+        self.save_object(model9, bernouli_nb_model+'demo')
+        self.save_object(model10, categorical_nb_model+'demo')
+        self.save_object(label_encoder, model_encoder+'demo')
 
         
 

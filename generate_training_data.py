@@ -4,12 +4,14 @@ import os
 import copy
 import json
 import csv
+import pandas as pd
 from os import listdir
 from os.path import isfile, join
 from collections import OrderedDict
+from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.stem.snowball import SnowballStemmer
 from utils import load_nlp, pickle_object
-from config import (disease_data_path, token_data_file, sent_data_file,
+from config import (disease_data_path, token_data_file, tfidf_data_file, sent_data_file,
                     symptom_counter_file, disease_to_symptom_file, symptom_to_disease_file)
 
 
@@ -24,6 +26,39 @@ class GenerateTrainingData():
         self.symptom_to_disease_map = dict()
         self.disease_to_symptom_map = dict()
 
+    def get_tfidf_vector(self, data_dict):
+        """Generate TFIDF weights for all features"""
+        disease_names = data_dict.keys()
+        documents = [' '.join(doc) for doc in data_dict.values()]
+        vectorizer = TfidfVectorizer()
+        vectors = vectorizer.fit_transform(documents)
+        dense = vectors.todense()
+        denselist = dense.tolist()
+        feature_names = vectorizer.get_feature_names()
+        dataframe = pd.DataFrame(denselist, columns=feature_names)
+        dataframe.insert(0, 'disease', disease_names)
+        return dataframe
+
+    def save_feature_as_tfidf(self, data_map: dict):
+        """Store the generated training features as TFIDF data in a csv file.
+
+        Args:
+            data_map (dict): hash map of title to list of symptoms (key: value) pairs
+
+        Return:
+            write the data into a CSV file.
+
+        CSV file format :
+        col 1 = disease 
+        col 2...inf = each token (token = symptom root word)
+        col 1 values are disease names
+        other col values are tfidf frequency score
+        each row is for one disease
+        """
+        #TFIDF weighted csv file
+        vector_data = self.get_tfidf_vector(data_map)
+        vector_data.to_csv(tfidf_data_file, encoding='utf-8', index=False)
+    
     def save_feature_as_tokens(self, data_map: dict):
         """Store the generated training features as tokens (list of features) in a csv file.
 
@@ -168,6 +203,7 @@ class GenerateTrainingData():
                 line_no += 1
 
         # Save the disease and synptom data into CSV files.
+        self.save_feature_as_tfidf(self.disease_to_symptom_map)
         self.save_feature_as_sents(self.disease_to_symptom_map)
         self.save_feature_as_tokens(self.disease_to_symptom_map)
         self.dump_all_token()

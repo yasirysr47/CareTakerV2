@@ -91,7 +91,7 @@ def get_counter(list_of_symptoms: list) -> list:
     """Generates a counter of words with its number of occurences
 
     Args:
-        list_of_symptoms (list): A list of set of symptoms
+        list_of_symptoms (list): A list of set of symptoms -> [{...},{...},{..},..]
 
     Returns:
         Counter object: counter object with word and its occurence number

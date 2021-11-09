@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 from utils import load_pickle_object, clean_str, cosine_similarity, load_nlp, get_counter
 from config import (sent_data_file, feature_list, symptom_to_disease_file, disease_to_symptom_file,
-                    model_encoder, categorical_nb_model, svm_model)
+                    model_encoder, gaussian_nb_model, svm_model)
 
 class DiseasePredictor():
     """This class will start the interactive disease predictor based on given symptoms.
@@ -214,6 +214,9 @@ class DiseasePredictor():
             output_type = "token"
         # clean the input data to its root form.
         input_text = clean_str(self.nlp(input_string.lower().strip()), typ=output_type)
+        # use the below line for prediction without processing input data
+        # prediction_data = ' '.join(input_text)
+        # process input data for prediction (improves accurracy)
         prediction_data = self.process_input_data(input_text)
 
         if method == "vector":
@@ -221,10 +224,10 @@ class DiseasePredictor():
             prediction = self.get_disease_from_vectorization_model(prediction_data)
             predicted_values.append((prediction, "Vector"))
         elif method == "model":
-            # Load Categorical Naive Bayes model and predict the disease from given symptoms.
-            CNB_model = self.load_object(categorical_nb_model)
-            prediction = self.get_disease_from_model(prediction_data, CNB_model)
-            predicted_values.append((prediction, "Catg. Naive Bayes"))
+            # Load Gaussian Naive Bayes model and predict the disease from given symptoms.
+            GNB_model = self.load_object(gaussian_nb_model)
+            prediction = self.get_disease_from_model(prediction_data, GNB_model)
+            predicted_values.append((prediction, "Gaussian Naive Bayes"))
 
             # Load SVC model and predict the disease from given symptoms.
             SVM_model = self.load_object(svm_model)
@@ -235,10 +238,10 @@ class DiseasePredictor():
             prediction = self.get_disease_from_vectorization_model(prediction_data)
             predicted_values.append((prediction, "Vector"))
 
-            # Load Categorical Naive Bayes model and predict the disease from given symptoms.
-            CNB_model = self.load_object(categorical_nb_model)
-            prediction = self.get_disease_from_model(prediction_data, CNB_model)
-            predicted_values.append((prediction, "Catg. Naive Bayes"))
+            # Load Gaussian Naive Bayes model and predict the disease from given symptoms.
+            GNB_model = self.load_object(gaussian_nb_model)
+            prediction = self.get_disease_from_model(prediction_data, GNB_model)
+            predicted_values.append((prediction, "Gaussian Naive Bayes"))
 
             # Load SVC model and predict the disease from given symptoms.
             SVM_model = self.load_object(svm_model)

@@ -1,0 +1,68 @@
+Training RandomForestRegressor(max_features=5, n_estimators=200, random_state=1) started....
+Model test accuracy: 85.086%
+Total time taken for training: 1.4219889640808105 s
+=========
+
+
+Training XGBRegressor(base_score=None, booster=None, colsample_bylevel=None,
+             colsample_bynode=None, colsample_bytree=None,
+             enable_categorical=False, gamma=None, gpu_id=None,
+             importance_type=None, interaction_constraints=None,
+             learning_rate=0.1, max_delta_step=None, max_depth=None,
+             min_child_weight=None, missing=nan, monotone_constraints=None,
+             n_estimators=250, n_jobs=8, num_parallel_tree=None, predictor=None,
+             random_state=None, reg_alpha=None, reg_lambda=None,
+             scale_pos_weight=None, subsample=None, tree_method=None,
+             validate_parameters=None, verbosity=None) started....
+Model test accuracy: 90.627%
+Total time taken for training: 15.248828887939453 s
+=========
+
+
+Training GaussianNB() started....
+Model test accuracy: 99.880%
+Total time taken for training: 14.271320819854736 s
+=========
+
+
+Training KNeighborsClassifier(n_neighbors=300) started....
+Model test accuracy: 0.480%
+Total time taken for training: 0.15738797187805176 s
+=========
+
+
+Training SVC() started....
+Model test accuracy: 99.760%
+Total time taken for training: 9.135577917098999 s
+=========
+
+
+Training LinearSVC() started....
+Model test accuracy: 99.760%
+Total time taken for training: 0.7678890228271484 s
+=========
+
+
+Training SVR() started....
+Model test accuracy: 0.602%
+Total time taken for training: 3.203817129135132 s
+=========
+
+
+Training BernoulliNB() started....
+Model test accuracy: 99.880%
+Total time taken for training: 0.34181690216064453 s
+=========
+
+
+Training CategoricalNB() started....
+Model test accuracy: 0.240%
+Total time taken for training: 39.70880174636841 s
+=========
+
+
+Training LinearSVR() started....
+Model test accuracy: -31.083%
+Total time taken for training: 0.09275603294372559 s
+=========
+

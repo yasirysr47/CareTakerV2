@@ -14,6 +14,7 @@ ml_datagen_path = os.path.join('./', "ml_datagen")
 # training data files
 token_data_file = os.path.join(ml_datagen_path, "feature_as_tokens_new.csv")
 sent_data_file = os.path.join(ml_datagen_path, "feature_as_sents_new.csv")
+tfidf_data_file = os.path.join(ml_datagen_path, "feature_as_tfidf_new.csv")
 symptom_counter_file = os.path.join(ml_datagen_path, "symptoms_count.txt")
 
 # location for pickled models and objects

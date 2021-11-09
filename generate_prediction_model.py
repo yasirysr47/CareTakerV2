@@ -3,11 +3,11 @@
 import time
 import pandas as pd
 from sklearn.svm import SVC
-from sklearn.naive_bayes import CategoricalNB
+from sklearn.naive_bayes import CategoricalNB, GaussianNB
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from utils import pickle_object, load_nlp
-from config import (token_data_file, svm_model, feature_list, categorical_nb_model, model_encoder)
+from config import (token_data_file, tfidf_data_file, svm_model, feature_list, gaussian_nb_model, model_encoder)
 
 
 class TrainModel():
@@ -18,6 +18,7 @@ class TrainModel():
         """
         self.nlp = load_nlp()
         self.tokenized_input_file = pd.read_csv(token_data_file)
+        self.tfidf_input_file = pd.read_csv(tfidf_data_file)
 
     def save_object(self, object, filename: str):
         """Save a python object to a binary file for later use.
@@ -33,12 +34,16 @@ class TrainModel():
         """
         label_encoder = LabelEncoder()
         # Y is the target values w.r.t training data.
-        Y = self.tokenized_input_file.disease
+        # Y = self.tokenized_input_file.disease
+        Y = self.tfidf_input_file.disease
+        
         # features are all columns except the target column (disease).
-        features = self.tokenized_input_file.columns.drop('disease')
+        # features = self.tokenized_input_file.columns.drop('disease')
+        features = self.tfidf_input_file.columns.drop('disease')
         self.save_object(features, feature_list)
         # X is the training data.
-        X = self.tokenized_input_file[features]
+        # X = self.tokenized_input_file[features]
+        X = self.tfidf_input_file[features]
         # Get some or all cases for testing purposes.
         _, default_X_test, _, default_y_test = train_test_split(X, Y, test_size=0.99, random_state=5)
         
@@ -49,9 +54,8 @@ class TrainModel():
         # SVM model.
         SVM_model = SVC()
         # Naive Bayes model
-        CNB_model = CategoricalNB()
-
-        models = [SVM_model, CNB_model]
+        GNB_model = GaussianNB()
+        models = [SVM_model, GNB_model]
         # start trainng the models
         for i, model in enumerate(models):
             start_time = time.time()
@@ -79,7 +83,7 @@ class TrainModel():
         
         # Save the models and encoder into a file. (pickling)
         self.save_object(SVM_model, svm_model)
-        self.save_object(CNB_model, categorical_nb_model)
+        self.save_object(GNB_model, gaussian_nb_model)
         self.save_object(label_encoder, model_encoder)
 
 
